@@ -8,12 +8,25 @@
     <link type="text/css" rel="stylesheet" href="/static/lib/jquery-ui-1.12.1/jquery-ui.theme.css"/>
 	<link type="text/css" rel="stylesheet" href="/static/lib/jsgrid-1.5.3/jsgrid.min.css" />
 	<link type="text/css" rel="stylesheet" href="/static/lib/jsgrid-1.5.3/jsgrid-theme.min.css" />
+	<link type="text/css" rel="stylesheet" href="/static/lib/highlight-9.12.0/styles/default.css" />
     <link type="text/css" rel="stylesheet" href="/static/elastui.css"/>
     <script type="text/javascript" src="/static/lib/jquery-3.3.1.min.js"></script>
     <script type="text/javascript" src="/static/lib/jquery-ui-1.12.1/jquery-ui.js"></script>
 	<script type="text/javascript" src="/static/lib/jsgrid-1.5.3/jsgrid.js"></script>
+	<script type="text/javascript" src="/static/lib/highlight-9.12.0/highlight.pack.js"></script>
     <script>
         $( function() {
+			function debugDlg(data) {
+				var json = JSON.parse(data);
+				var stringify = JSON.stringify(json,undefined,2);
+				var prettify = hljs.highlightAuto(stringify).value;
+				prettify = hljs.fixMarkup(prettify);
+				$("#debugresponse").text(data);
+				hljs.configure({useBR: true});
+				$("#debugresponse").html(prettify);
+				$("#debugdialog").dialog('open');
+			};
+
             $( "#tabs" ).tabs();
             $( "#protocol" ).selectmenu();
             $( "input:text").addClass("ui-corner-all");
@@ -40,11 +53,11 @@
 				var url =$("#debug_get_endpoint").val();
                 $.get(
                     url, function( data ){
-						alert(data)
+						debugDlg(data);
                     },
 					"text"
                 ).fail(function(jqXHR, status, errorThrown) {
-                    alert(jqXHR.responseText);
+                    debugDlg(jqXHR.responseText);
                 });
 
                 event.preventDefault();
@@ -58,7 +71,7 @@
 					method: 'DELETE',
 					crossDomain: true,
 					success: function( data ){
-						alert(data)
+						debugDlg(data);
                     },
 					contentType: "text"
                 }).fail(function(jqXHR, status, errorThrown) {
@@ -77,16 +90,16 @@
 					crossDomain: true,
 					data: data,
 					success: function( returndata ){
-						alert(returndata)
+						debugDlg(returndata)
                     },
 					contentType: "application/json"
                 }).fail(function(jqXHR, status, errorThrown) {
-                    alert(jqXHR.responseText);
+                    debugDlg(jqXHR.responseText);
                 });
                 event.preventDefault();
                 return false;
             } );
-
+			
             $("#debug_put").button().click( function( event ) {
 				var url =$("#debug_put_endpoint").val();
 				var data = $("#debug_put_data").val();
@@ -96,11 +109,11 @@
 					crossDomain: true,
 					data: data,
 					success: function( returndata ){
-						alert(returndata)
+						debugDlg(returndata)
                     },
 					contentType: "application/json"
                 }).fail(function(jqXHR, status, errorThrown) {
-                    alert(jqXHR.responseText);
+                    debugDlg(jqXHR.responseText);
                 });
 
                 event.preventDefault();
@@ -194,6 +207,14 @@
 				return false;
             } );
 			
+			$("#debugdialog").dialog({
+				autoOpen: false,
+				minHeight: $(window).width()/4,
+				minWidth: $(window).width()/4,
+				maxWidth: $(window).width()*0.95,
+				maxHeight: $(window).height()*0.95,
+				
+			});
         } );
     </script>
 </head>
@@ -275,5 +296,9 @@
 			</tab>
     	</div>
  	</div>
+	
+	<div id="debugdialog" title="response">
+	  <pre><code class="json" id="debugresponse"></code></pre>
+	</div>
 </body>
 </html>
