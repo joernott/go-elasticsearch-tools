@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ElastUI</title>
+    <link type="text/css" rel="stylesheet" href="/static/lib/jquery-ui-1.12.1/jquery-ui.css"/>
+    <link type="text/css" rel="stylesheet" href="/static/lib/jquery-ui-1.12.1/jquery-ui.structure.css"/>
+    <link type="text/css" rel="stylesheet" href="/static/lib/jquery-ui-1.12.1/jquery-ui.theme.css"/>
+	<link type="text/css" rel="stylesheet" href="/static/lib/jsgrid-1.5.3/jsgrid.min.css" />
+	<link type="text/css" rel="stylesheet" href="/static/lib/jsgrid-1.5.3/jsgrid-theme.min.css" />
+    <link type="text/css" rel="stylesheet" href="/static/elastui.css"/>
+    <script type="text/javascript" src="/static/lib/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="/static/lib/jquery-ui-1.12.1/jquery-ui.js"></script>
+	<script type="text/javascript" src="/static/lib/jsgrid-1.5.3/jsgrid.js"></script>
+    <script>
+        $( function() {
+            $( "#tabs" ).tabs();
+            $( "#protocol" ).selectmenu();
+            $( "input:text").addClass("ui-corner-all");
+            $("#clusterstatus").button().click( function( event ) {
+                $.get(
+                    "/api/_cluster/health", function( data ){
+						var json = JSON.parse(data);
+						console.log(json);
+						$.each( json, function( key, val ) {
+								$("#cluster_"+key).html(val);
+  						});
+                    },
+					"text"
+                ).fail(function(jqXHR, status, errorThrown) {
+                    $("output").val(errorThrown);
+                    alert(jqXHR.responseText);
+                });
+
+                event.preventDefault();
+                return false;
+            } );
+
+            $("#debug_get").button().click( function( event ) {
+				var url =$("#debug_get_endpoint").val();
+                $.get(
+                    url, function( data ){
+						alert(data)
+                    },
+					"text"
+                ).fail(function(jqXHR, status, errorThrown) {
+                    alert(jqXHR.responseText);
+                });
+
+                event.preventDefault();
+                return false;
+            } );
+			
+            $("#debug_delete").button().click( function( event ) {
+				var url =$("#debug_delete_endpoint").val();
+                $.ajax({
+                    url: url,
+					method: 'DELETE',
+					crossDomain: true,
+					success: function( data ){
+						alert(data)
+                    },
+					contentType: "text"
+                }).fail(function(jqXHR, status, errorThrown) {
+                    alert(jqXHR.responseText);
+                });
+                event.preventDefault();
+                return false;
+            } );
+			
+            $("#debug_post").button().click( function( event ) {
+				var url =$("#debug_post_endpoint").val();
+				var data = $("#debug_post_data").val();
+                $.ajax({
+                    url: url, 
+					method: 'POST',
+					crossDomain: true,
+					data: data,
+					success: function( returndata ){
+						alert(returndata)
+                    },
+					contentType: "application/json"
+                }).fail(function(jqXHR, status, errorThrown) {
+                    alert(jqXHR.responseText);
+                });
+                event.preventDefault();
+                return false;
+            } );
+
+            $("#debug_put").button().click( function( event ) {
+				var url =$("#debug_put_endpoint").val();
+				var data = $("#debug_put_data").val();
+                $.ajax({
+                    url: url,
+					method: 'PUT',
+					crossDomain: true,
+					data: data,
+					success: function( returndata ){
+						alert(returndata)
+                    },
+					contentType: "application/json"
+                }).fail(function(jqXHR, status, errorThrown) {
+                    alert(jqXHR.responseText);
+                });
+
+                event.preventDefault();
+                return false;
+            } );
+
+		    $("#indexGrid").jsGrid({
+				autoload: true,
+		        width: "100%",
+		        height: "720px",
+		 
+		        inserting: false,
+		        editing: false,
+		        sorting: true,
+		        paging: false,
+				pageLoading : false,
+
+		        controller: {
+			        loadData: function() {
+						var d = $.Deferred();
+			            $.ajax({
+			                type: "GET",
+			                url: "/api/_cat/indices?v&format=json",
+							dataType: "text",
+			            }).done(function (response) {
+							var json = JSON.parse(
+								response.replace(/docs\.count/g,"docs_count")
+								.replace(/docs\.deleted/g,"docs_deleted")
+								.replace(/pri\.store\.size/g,"pri_store_size")
+								.replace(/store\.size/g,"store_size")
+							);
+							d.resolve(json);
+						});
+						return d.promise();
+			        },
+			        insertItem: $.noop,
+        			updateItem: $.noop,
+//        			deleteItem: $.noop
+/*			        
+			        insertItem: function(item) {
+			            return $.ajax({
+			                type: "POST",
+			                url: "/items",
+			                data: item
+			            });
+			        },
+			        
+			        updateItem: function(item) {
+			            return $.ajax({
+			                type: "PUT",
+			                url: "/items",
+			                data: item
+			            });
+			        },
+*/			        
+			        deleteItem: function(item) {
+//						alert(JSON.stringify(item));
+			            return $.ajax({
+			                type: "DELETE",
+			                url: "/api/"+item['index']
+			            });
+			        },
+
+			    },
+				
+		        fields: [
+		            { name: "index", title: "Index", type: "text", width: 100, align: "left"},
+					{ name: "health", title: "Health", type: "text", width: 30},
+					{ name: "status", type: "Status", type: "text", width: 30},
+		            { name: "pri", title: "Pri", type: "number", width: 10},
+					{ name: "rep", title: "Rep", type: "number", width: 10},
+		            { name: "docs_count", title: "Count", type: "number", width: 40 },
+					{ name: "docs_deleted", title: "Del", type: "number", width: 20 },
+					{ name: "store_size", title: "Tot Size", type: "text", width: 40, align: "right"},
+					{ name: "pri_store_size", title: "Pri Size", type: "text", width: 40, align: "right"},
+//					{ name: "uuid", title: "Uuid", type: "text", width: 200},
+		            { type: "control", width: 40 }
+		        ],
+/*				onItemDeleting: function(args) {
+					iname = args.item.name;
+					alert(JSON.stringify(args));
+					args.cancel = true;
+				}
+*/
+		    });
+
+			$("#updateindices").button().click( function( event ) {
+				$("#indexGrid").jsGrid("loadData");
+				
+				event.preventDefault();
+				return false;
+            } );
+			
+        } );
+    </script>
+</head>
+<body>
+	<div id="main" class="main">
+	    <div id="tabs">
+	        <ul>
+	            <li><a href="#tabs-cluster">Cluster</a></li>
+	            <li><a href="#tabs-indices">Indices</a></li>
+				<li><a href="#tabs-debug">Debug</a></li>
+	        </ul>
+	        <div id="tabs-cluster">
+				<button type="button" name="clusterstatus" id="clusterstatus" value="Cluster Status">Cluster Status</button>
+				<table>
+					<tr><td class="label">cluster_name</td><td class="value" id="cluster_cluster_name">&nbsp;</td></tr>
+					<tr><td class="label">status</td><td class="value" id="cluster_status">&nbsp;</td></tr>
+					<tr><td class="label">timed_out</td><td class="value" id="cluster_timed_out">&nbsp;</td></tr>
+					<tr><td class="label">number_of_nodes</td><td class="value" id="cluster_number_of_nodes">&nbsp;</td></tr>
+					<tr><td class="label">number_of_data_nodes</td><td class="value" id="cluster_number_of_data_nodes">&nbsp;</td></tr>
+					<tr><td class="label">active_primary_shards</td><td class="value" id="cluster_active_primary_shards">&nbsp;</td></tr>
+					<tr><td class="label">active_shards</td><td class="value" id="cluster_active_shards">&nbsp;</td></tr>
+					<tr><td class="label">relocating_shards</td><td class="value" id="cluster_relocating_shards">&nbsp;</td></tr>
+					<tr><td class="label">initializing_shards</td><td class="value" id="cluster_initializing_shards">&nbsp;</td></tr>
+					<tr><td class="label">unassigned_shards</td><td class="value" id="cluster_unassigned_shards">&nbsp;</td></tr>
+					<tr><td class="label">delayed_unassigned_shards</td><td class="value" id="cluster_delayed_unassigned_shards">&nbsp;</td></tr>
+					<tr><td class="label">number_of_pending_tasks</td><td class="value" id="cluster_number_of_pending_tasks">&nbsp;</td></tr>
+					<tr><td class="label">number_of_in_flight_fetch</td><td class="value" id="cluster_number_of_in_flight_fetch">&nbsp;</td></tr>
+					<tr><td class="label">task_max_waiting_in_queue_millis</td><td class="value" id="cluster_task_max_waiting_in_queue_millis">&nbsp;</td></tr>
+					<tr><td class="label">active_shards_percent_as_number</td><td class="value" id="cluster_active_shards_percent_as_number">&nbsp;</td></tr>
+				</table>
+			</div>
+       		<div id="tabs-indices">
+				<button type="button" name="updateindices" id="updateindices" value="Update Index list">Update Index list</button>
+           		<div id="indexGrid"></div>
+       		</div>
+			<div id="tabs-debug">
+				<table>
+					<tr><th colspan="3" class="header">GET</th></tr>
+					<tr>
+						<td class="label">Endpoint</td>
+						<td><input type="text" name="debug_get_endpoint" id="debug_get_endpoint" value="/api/_cat/indices?v&format=json" class="ui-textfield" size="80" /></td>
+						<td class="label"><button type="button" name="debug_get" id="debug_get" value="GET">GET</button></td>
+					</tr>
+					<tr><th colspan="3" class="header">DELETE</th></tr>
+					<tr>
+						<td class="label">Endpoint</td>
+						<td><input type="text" name="debug_delete_endpoint" id="debug_delete_endpoint" value="" class="ui-textfield" size="80" /></td>
+						<td class="label"><button type="button" name="debug_delete" id="debug_delete" value="DELETE">DELETE</button></td>
+					</tr>
+					<tr><th colspan="3" class="header">POST</th></tr>
+					<tr><td class="label">Endpoint</td>
+						<td class="value"><input type="text" name="debug_post_endpoint" id="debug_post_endpoint" value="/api/*/_search" class="ui-textfield" size="80" /></td>
+						<td class="label">&nbsp</td>
+					</tr>
+					<tr><td class="label">Data</td>
+						<td class="value"><textarea name="debug_post_data" id ="debug_post_data" class="ui-textfield" cols="80" rows="10">{
+    "_source": ["log_processing_time"],
+    "query" : {
+        "exists" : { "field" : "log_processing_time" }
+    }
+}</textarea></td>
+						<td class="value"><button type="button" name="debug_post" id="debug_post" value="POST">POST</button></td>
+					</tr>
+					<tr><th colspan="3" class="header">PUT</th></tr>
+					<tr><td class="label">Endpoint</td>
+						<td class="value"><input type="text" name="debug_put_endpoint" id="debug_put_endpoint" value="/api/*/_settings" class="ui-textfield" size="80" /></td>
+						<td class="label">&nbsp</td>
+					</tr>
+					<tr><td class="label">Data</td>
+						<td class="value"><textarea name="debug_put_data" id ="debug_put_data" class="ui-textfield" cols="80" rows="10">{
+	"index":{
+		"number_of_replicas": 0
+	}
+}</textarea></td>
+						<td class="value"><button type="button" name="debug_put" id="debug_put" value="POST">PUT</button></td>
+					</tr>
+				</table>
+
+			</tab>
+    	</div>
+ 	</div>
+</body>
+</html>

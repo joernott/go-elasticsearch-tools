@@ -1,0 +1,53 @@
+
+body {
+    background-color: #dddddd;
+}
+.main {
+    min-width: 400px;
+    max-width: 1600px;
+    min-height: 400px;
+    height: 100%;
+    background-color: white;
+    margin: auto;
+}
+
+#label {
+	float: left;
+	min-width: 160px;
+	
+}
+
+.header {
+	background-color: #f2f2f2;
+}
+
+#value {
+	font-family: "Courier", "Courier New";
+	float: left;
+}
+
+fieldset {
+    border: none;
+}
+
+label {
+	min-width: 160px;
+	display:inline-block;
+}
+
+input {
+/*	min-width: 160px; */
+	display:inline-block;
+}
+
+.ui-textfield {
+    font: inherit;
+    color: inherit;
+    background: none;
+    text-align: inherit;
+    outline: none;
+    cursor: text;
+	padding: 1px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}

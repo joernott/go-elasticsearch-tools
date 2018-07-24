@@ -1,0 +1,6 @@
+{
+    "aggs" : {
+        "max_lpt" : { "max" : { "field" : "log_processing_time" } },
+        "min_lpt" : { "min" : { "field" : "log_processing_time" } }
+    }
+}

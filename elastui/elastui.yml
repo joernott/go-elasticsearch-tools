@@ -1,0 +1,9 @@
+---
+ssl:         true
+validatessl: false
+host:        'localhost'
+port:        9200
+user:        'elastic'
+password:    'search'
+loglevel:    5
+logfile:     ''
