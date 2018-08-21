@@ -11,13 +11,13 @@ import (
 	"text/template"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/joernott/elasticsearch-tools/elasticsearch"
+	"github.com/joernott/lra"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 type Gobana struct {
-	Connection *elasticsearch.ElasticsearchConnection
+	Connection *lra.Connection
 	Endpoint   string
 	Query      string
 }
@@ -55,12 +55,29 @@ type ElasticsearchHitList struct {
 
 type AggregationResult map[string]interface{}
 
-func NewGobana(Connection *elasticsearch.ElasticsearchConnection, Query string, Queryfile string, Toml bool, Data []string, Endpoint string) (*Gobana, error) {
+func NewGobana(UseSSL bool, Server string, Port int, User string, Password string, ValidateSSL bool, Proxy string, ProxyIsSocks bool, Query string, Queryfile string, Toml bool, Data []string, Endpoint string) (*Gobana, error) {
 	var g *Gobana
 	var err error
 
 	logger := log.WithField("func", "NewGobana")
 	g = new(Gobana)
+
+	hdr := make(lra.HeaderList)
+	hdr["Content-Type"] = "application/json"
+	Connection, err := lra.NewConnection(UseSSL,
+		Server,
+		Port,
+		User,
+		Password,
+		"",
+		ValidateSSL,
+		Proxy,
+		ProxyIsSocks,
+		hdr)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
 	g.Connection = Connection
 	g.Endpoint = Endpoint
 	if Queryfile != "" {
@@ -139,7 +156,7 @@ func (gobana *Gobana) Execute() (*ElasticsearchResult, error) {
 
 	logger := log.WithField("func", "Gobana.Execute")
 	logger.WithFields(log.Fields{"query": gobana.Query, "endpoint": gobana.Endpoint}).Debug("Execute")
-	result, err := gobana.Connection.PostRaw("/"+gobana.Endpoint, []byte(gobana.Query))
+	result, err := gobana.Connection.Post("/"+gobana.Endpoint, []byte(gobana.Query))
 	if err != nil {
 		logger.Error(err)
 		return nil, err

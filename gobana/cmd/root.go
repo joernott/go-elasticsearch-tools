@@ -8,15 +8,15 @@ import (
 	"path/filepath"
 
 	_ "github.com/davecgh/go-spew/spew"
-	"github.com/joernott/elasticsearch-tools/elasticsearch"
 	"github.com/joernott/elasticsearch-tools/gobana/handler"
+	"github.com/joernott/lra"
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var Connection *elasticsearch.ElasticsearchConnection
+var Connection *lra.Connection
 
 var rootCmd = &cobra.Command{
 	Use:   "gobana",
@@ -36,15 +36,16 @@ var rootCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var result *handler.ElasticsearchResult
-		Connection = elasticsearch.NewElasticsearch(viper.GetBool("ssl"),
+
+		g, err := handler.NewGobana(
+			viper.GetBool("ssl"),
 			viper.GetString("host"),
 			viper.GetInt("port"),
 			viper.GetString("user"),
 			viper.GetString("password"),
 			viper.GetBool("validatessl"),
 			viper.GetString("proxy"),
-			viper.GetBool("socks"))
-		g, err := handler.NewGobana(Connection,
+			viper.GetBool("socks"),
 			viper.GetString("query"),
 			viper.GetString("queryfile"),
 			viper.GetBool("toml"),

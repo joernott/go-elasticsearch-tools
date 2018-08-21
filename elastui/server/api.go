@@ -7,7 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/davecgh/go-spew/spew"
+	_ "github.com/davecgh/go-spew/spew"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -26,8 +26,7 @@ func ApiGET(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	})
 
 	logger.Debug("GET")
-	data, err := Connection.GetRaw(params.ByName("path") + "?" + query)
-	spew.Dump(data)
+	data, err := Connection.Get(params.ByName("path") + "?" + query)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -54,8 +53,7 @@ func ApiPOST(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		logger.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	data, err := Connection.PostRaw(params.ByName("path")+"?"+query, inputdata)
-	spew.Dump(data)
+	data, err := Connection.Post(params.ByName("path")+"?"+query, inputdata)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -81,8 +79,7 @@ func ApiPUT(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		logger.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	data, err := Connection.PutRaw(params.ByName("path")+"?"+query, inputdata)
-	spew.Dump(data)
+	data, err := Connection.Put(params.ByName("path")+"?"+query, inputdata)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -103,8 +100,7 @@ func ApiDELETE(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	})
 
 	logger.Debug("DELETE")
-	data, err := Connection.DeleteRaw(params.ByName("path") + "?" + query)
-	spew.Dump(data)
+	data, err := Connection.Delete(params.ByName("path") + "?" + query)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(http.StatusBadRequest)

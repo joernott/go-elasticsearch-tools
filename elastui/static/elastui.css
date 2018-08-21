@@ -52,6 +52,11 @@ input {
 	margin-bottom: 3px;
 }
 
+.dialog {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
 pre {
 	overflow: auto;
 }

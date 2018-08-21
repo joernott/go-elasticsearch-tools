@@ -8,15 +8,15 @@ import (
 	"path/filepath"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/joernott/elasticsearch-tools/elasticsearch"
 	"github.com/joernott/elasticsearch-tools/elastui/server"
+	"github.com/joernott/lra"
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var Connection *elasticsearch.ElasticsearchConnection
+var Connection *lra.Connection
 
 var rootCmd = &cobra.Command{
 	Use:   "elasticui",
@@ -85,7 +85,36 @@ var rootCmd = &cobra.Command{
 		log.Debug("PersistentPreRun finished")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		Connection = elasticsearch.NewElasticsearch(UseSSL, Host, Port, User, Password, ValidateSSL, Proxy, ProxyIsSocks)
+		hdr := make(lra.HeaderList)
+		hdr["Content-Type"] = "application/json"
+		Connection, err := lra.NewConnection(
+			viper.GetBool("ssl"),
+			viper.GetString("host"),
+			viper.GetInt("port"),
+			"",
+			viper.GetString("user"),
+			viper.GetString("password"),
+			viper.GetBool("validatessl"),
+			viper.GetString("proxy"),
+			viper.GetBool("socks"),
+			hdr)
+		if err != nil {
+			log.WithField("func", "RootCmd.Run").Error(err)
+			os.Exit(10)
+		}
+		log.WithFields(log.Fields{
+			"func":         "RootCmd.Run",
+			"Protocol":     Connection.Protocol,
+			"Server":       Connection.Server,
+			"Port":         Connection.Port,
+			"User":         Connection.User,
+			"Password":     Connection.Password,
+			"ValidateSSL":  Connection.ValidateSSL,
+			"Proxy":        Connection.Proxy,
+			"ProxyIsSocks": Connection.ProxyIsSocks,
+			"BaseURL":      Connection.BaseURL,
+		}).Debug("Elasticsearch connection initialized")
+
 		server.Router(Connection)
 	},
 }

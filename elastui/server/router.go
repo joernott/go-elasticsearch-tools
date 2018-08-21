@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/joernott/elasticsearch-tools/elasticsearch"
+	"github.com/joernott/lra"
 	"github.com/julienschmidt/httprouter"
 	log "github.com/sirupsen/logrus"
 )
 
-var Connection *elasticsearch.ElasticsearchConnection
+var Connection *lra.Connection
 
-func Router(elasticsearch *elasticsearch.ElasticsearchConnection) {
+func Router(elasticsearch *lra.Connection) {
 
 	Connection = elasticsearch
 	router := httprouter.New()

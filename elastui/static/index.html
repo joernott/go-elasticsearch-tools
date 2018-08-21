@@ -160,15 +160,8 @@
 			                data: item
 			            });
 			        },
-			        
-			        updateItem: function(item) {
-			            return $.ajax({
-			                type: "PUT",
-			                url: "/items",
-			                data: item
-			            });
-			        },
 */			        
+			        
 			        deleteItem: function(item) {
 //						alert(JSON.stringify(item));
 			            return $.ajax({
@@ -190,14 +183,32 @@
 					{ name: "store_size", title: "Tot Size", type: "text", width: 40, align: "right"},
 					{ name: "pri_store_size", title: "Pri Size", type: "text", width: 40, align: "right"},
 //					{ name: "uuid", title: "Uuid", type: "text", width: 200},
-		            { type: "control", width: 40 }
+		            { type: "control", width: 40, editButton: false,
+						itemTemplate: function(value,item) {
+							var $result = jsGrid.fields.control.prototype.itemTemplate.apply(this, arguments);
+
+							var $customEditButton = $("<input>").attr({class: "customGridEditbutton jsgrid-button jsgrid-edit-button"})
+								.click(function(e) {
+									$("#editindex").val(item['index']);
+									$.get(
+					                     "/api/"+item['index']+"/_settings", function( data ){
+											var idx = $("#editindex").val();
+											var json = JSON.parse(data);
+											var repl=json[idx]['settings']['index']['number_of_replicas'];
+											$("#editreplicas").spinner("value",repl);
+											$("#indexdialog").dialog('open');
+					                    },
+										"text"
+					                ).fail(function(jqXHR, status, errorThrown) {
+					                    $("output").val(errorThrown);
+					                    alert(jqXHR.responseText);
+					                });
+									e.stopPropagation();
+	                      	});
+							return $result.add($customEditButton);
+						}, 
+					}
 		        ],
-/*				onItemDeleting: function(args) {
-					iname = args.item.name;
-					alert(JSON.stringify(args));
-					args.cancel = true;
-				}
-*/
 		    });
 
 			$("#updateindices").button().click( function( event ) {
@@ -215,6 +226,102 @@
 				maxHeight: $(window).height()*0.95,
 				
 			});
+
+			$("#indexdialog").dialog({
+				autoOpen: false,
+				minHeight: $(window).width()/4,
+				minWidth: $(window).width()/4,
+				maxWidth: $(window).width()*0.95,
+				maxHeight: $(window).height()*0.95,
+				
+			});
+
+			$("#editreplicas").spinner();
+
+			$("#setreplicas").button().click( function( event ) {
+				var idx = $("#editindex").val();
+				var replicas = $("#editreplicas").spinner().spinner("value");
+				var url = "/api/" + idx + "/_settings";
+				var data = '{"index":{"number_of_replicas":'+ replicas +'}}';
+				$("#indexdialog").dialog('close');
+                $.ajax({
+                    url: url,
+					method: 'PUT',
+					crossDomain: true,
+					data: data,
+					success: function( returndata ){
+						debugDlg(returndata)
+                    },
+					contentType: "application/json"
+                }).fail(function(jqXHR, status, errorThrown) {
+                    debugDlg(jqXHR.responseText);
+                });
+				$("#indexGrid").jsGrid("loadData");
+                event.preventDefault();
+                return false;
+            } );
+
+			$("#editnorefresh").button().click( function( event ) {
+				var idx = $("#editindex").val();
+				var url = "/api/" + idx + "/_settings";
+				var data = '{"index":{"refresh_interval":-1}}';
+				$("#indexdialog").dialog('close');
+                $.ajax({
+                    url: url,
+					method: 'PUT',
+					crossDomain: true,
+					data: data,
+					success: function( returndata ){
+						debugDlg(returndata)
+                    },
+					contentType: "application/json"
+                }).fail(function(jqXHR, status, errorThrown) {
+                    debugDlg(jqXHR.responseText);
+                });
+                event.preventDefault();
+                return false;
+            } );
+
+			$("#editrefresh").button().click( function( event ) {
+				var idx = $("#editindex").val();
+				var url = "/api/" + idx + "/_settings";
+				var data = '{"index":{"refresh_interval":null}}';
+				$("#indexdialog").dialog('close');
+                $.ajax({
+                    url: url,
+					method: 'PUT',
+					crossDomain: true,
+					data: data,
+					success: function( returndata ){
+						debugDlg(returndata)
+                    },
+					contentType: "application/json"
+                }).fail(function(jqXHR, status, errorThrown) {
+                    debugDlg(jqXHR.responseText);
+                });
+                event.preventDefault();
+                return false;
+            } );
+
+			$("#edittriggerrefresh").button().click( function( event ) {
+				var idx = $("#editindex").val();
+				var url = "/api/" + idx + "/_refresh";
+				$("#indexdialog").dialog('close');
+                $.ajax({
+                    url: url,
+					method: 'POST',
+					crossDomain: true,
+					success: function( returndata ){
+						debugDlg(returndata)
+                    },
+					contentType: "application/json"
+                }).fail(function(jqXHR, status, errorThrown) {
+                    debugDlg(jqXHR.responseText);
+                });
+                event.preventDefault();
+                return false;
+            } );
+
         } );
     </script>
 </head>
@@ -299,6 +406,24 @@
 	
 	<div id="debugdialog" title="response">
 	  <pre><code class="json" id="debugresponse"></code></pre>
+	</div>
+	<div id="indexdialog" title="Index">
+		<input type="hidden" name="editindex" id="editindex" />
+		<div class="dialog">
+			<label for="editreplicas"># of Replicas</label>
+			<input name="editreplicas" id="editreplicas" />
+			<button name="setreplicas" id="setreplicas">Set</button>
+		</div>
+		<div class="dialog">
+			<button name="editnorefresh" id="editnorefresh">Turn off refresh interval</button>
+		</div>
+		<div class="dialog">
+			<button name="editrefresh" id="editrefresh">Turn on default refresh interval</button>
+		</div>
+		<div class="dialog">
+			<button name="edittriggerrefresh" id="edittriggerrefresh">Trigger refresh</button>
+		</div>
+
 	</div>
 </body>
 </html>
