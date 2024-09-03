@@ -1,0 +1,59 @@
+name: Test
+
+on:
+  pull_request: {}
+  push: {}
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+    strategy:
+      matrix:
+        go:
+          - '1.20.x'
+          - '1.21.x'
+          - 'stable'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go ${{ matrix.go }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+
+
+      - name: ElastUI
+        run: |
+          cd elastui
+          go get -v .
+          go build
+          go test -v -cover -coverprofile=../coverage_elastui.out
+          go tool cover -html=../coverage.out -o ../coverage_elastui.html
+
+      - name: Gobana
+        run: |
+          cd gobana
+          go get -v .
+          go build
+          go test -v -cover -coverprofile=../coverage_gobana.out
+          go tool cover -html=../coverage.out -o ../coverage_gobana.html
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.go }}
+          path: |
+            coverage_elastui.out
+            coverage_elastui.html
+            coverage_gobana.out
+            coverage_gobana.html
+
+      - uses: codecov/codecov-action@v4
+        with:
+            files: |
+              ./coverage_elastui.out
+              ./coverage_gobana.out
+            token: ${{ secrets.CODECOV_TOKEN }}
+            verbose: true

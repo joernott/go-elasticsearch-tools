@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"bufio"
 	"path/filepath"
@@ -97,7 +98,9 @@ var rootCmd = &cobra.Command{
 			viper.GetBool("validatessl"),
 			viper.GetString("proxy"),
 			viper.GetBool("socks"),
-			hdr)
+			hdr,
+			time.Duration(viper.GetUint("timeout"))*time.Second,
+		)
 		if err != nil {
 			log.WithField("func", "RootCmd.Run").Error(err)
 			os.Exit(10)
@@ -130,6 +133,7 @@ var LogLevel int
 var LogFile string
 var Proxy string
 var ProxyIsSocks bool
+var Timeout uint
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
@@ -150,6 +154,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&LogFile, "logfile", "L", "", "logfile (defaults to stdout)")
 	rootCmd.PersistentFlags().StringVarP(&Proxy, "proxy", "y", "", "proxy (defaults to none)")
 	rootCmd.PersistentFlags().BoolVarP(&ProxyIsSocks, "socks", "Y", false, "This is a SOCKS proxy (defaults to no)")
+	rootCmd.PersistentFlags().UintVarP(&Timeout, "timeout", "T", 60, "timeout in seconds (defaults to 60)")
 
 	viper.BindPFlag("ssl", rootCmd.PersistentFlags().Lookup("ssl"))
 	viper.BindPFlag("validatessl", rootCmd.PersistentFlags().Lookup("validatessl"))
@@ -161,6 +166,7 @@ func init() {
 	viper.BindPFlag("logfile", rootCmd.PersistentFlags().Lookup("logfile"))
 	viper.BindPFlag("proxy", rootCmd.PersistentFlags().Lookup("proxy"))
 	viper.BindPFlag("socks", rootCmd.PersistentFlags().Lookup("socks"))
+	viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
 
 	viper.SetDefault("ssl", false)
 	viper.SetDefault("validatessl", true)
@@ -172,4 +178,5 @@ func init() {
 	viper.SetDefault("logfile", "")
 	viper.SetDefault("proxy", "")
 	viper.SetDefault("socks", false)
+	viper.SetDefault("timeout", 60)
 }

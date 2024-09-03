@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joernott/lra"
@@ -55,7 +56,7 @@ type ElasticsearchHitList struct {
 
 type AggregationResult map[string]interface{}
 
-func NewGobana(UseSSL bool, Server string, Port int, User string, Password string, ValidateSSL bool, Proxy string, ProxyIsSocks bool, Query string, Queryfile string, Toml bool, Data []string, Endpoint string) (*Gobana, error) {
+func NewGobana(UseSSL bool, Server string, Port int, User string, Password string, ValidateSSL bool, Proxy string, ProxyIsSocks bool, Timeout uint, Query string, Queryfile string, Toml bool, Data []string, Endpoint string) (*Gobana, error) {
 	var g *Gobana
 	var err error
 
@@ -73,7 +74,9 @@ func NewGobana(UseSSL bool, Server string, Port int, User string, Password strin
 		ValidateSSL,
 		Proxy,
 		ProxyIsSocks,
-		hdr)
+		hdr,
+		time.Duration(Timeout),
+	)
 	if err != nil {
 		logger.Error(err)
 		return nil, err

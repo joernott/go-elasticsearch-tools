@@ -46,6 +46,7 @@ var rootCmd = &cobra.Command{
 			viper.GetBool("validatessl"),
 			viper.GetString("proxy"),
 			viper.GetBool("socks"),
+			viper.GetUint("timeout"),
 			viper.GetString("query"),
 			viper.GetString("queryfile"),
 			viper.GetBool("toml"),
@@ -87,6 +88,7 @@ var LogLevel int
 var LogFile string
 var Proxy string
 var ProxyIsSocks bool
+var Timeout uint
 var Query string
 var QueryFile string
 var Toml bool
@@ -118,6 +120,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&LogFile, "logfile", "L", "", "Log file (defaults to stdout)")
 	rootCmd.PersistentFlags().StringVarP(&Proxy, "proxy", "y", "", "Proxy (defaults to none)")
 	rootCmd.PersistentFlags().BoolVarP(&ProxyIsSocks, "socks", "Y", false, "This is a SOCKS proxy")
+	rootCmd.PersistentFlags().UintVarP(&Timeout, "timeout", "T", 60, "timeout in seconds (defaults to 60)")
 	rootCmd.PersistentFlags().StringVarP(&Query, "query", "q", "", "Query to pass along")
 	rootCmd.PersistentFlags().StringVarP(&QueryFile, "queryfile", "Q", "", "File containing a query")
 	rootCmd.PersistentFlags().BoolVarP(&Toml, "toml", "t", false, "Use TOML template parsing on query file")
@@ -138,6 +141,7 @@ func init() {
 	viper.SetDefault("logfile", "")
 	viper.SetDefault("proxy", "")
 	viper.SetDefault("socks", false)
+	viper.SetDefault("timeout", 60)
 	viper.SetDefault("query", "")
 	viper.SetDefault("queryfile", "")
 	viper.SetDefault("toml", false)
@@ -158,6 +162,7 @@ func init() {
 	viper.BindPFlag("logfile", rootCmd.PersistentFlags().Lookup("logfile"))
 	viper.BindPFlag("proxy", rootCmd.PersistentFlags().Lookup("proxy"))
 	viper.BindPFlag("socks", rootCmd.PersistentFlags().Lookup("socks"))
+	viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
 	viper.BindPFlag("query", rootCmd.PersistentFlags().Lookup("query"))
 	viper.BindPFlag("queryfile", rootCmd.PersistentFlags().Lookup("queryfile"))
 	viper.BindPFlag("toml", rootCmd.PersistentFlags().Lookup("toml"))

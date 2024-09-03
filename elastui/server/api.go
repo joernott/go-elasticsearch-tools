@@ -100,7 +100,7 @@ func ApiDELETE(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	})
 
 	logger.Debug("DELETE")
-	data, err := Connection.Delete(params.ByName("path") + "?" + query)
+	data, err := Connection.Delete(params.ByName("path")+"?"+query, []byte("{}"))
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
