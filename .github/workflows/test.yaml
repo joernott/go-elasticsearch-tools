@@ -33,8 +33,7 @@ jobs:
           go tool cover -html=../coverage_elastui.out -o ../coverage_elastui.html
 
       - name: Gobana
-        if: always()
-        needs: setup
+        if: ${{ always() && steps.setup.conclusion == 'success' }}
         run: |
           cd gobana
           go get -v .
