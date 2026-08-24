@@ -9,7 +9,7 @@ require (
 	github.com/joernott/lra v1.0.2
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/sirupsen/logrus v1.10.0
+	github.com/sirupsen/logrus v1.10.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 )
